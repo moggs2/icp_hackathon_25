@@ -74,17 +74,17 @@ actor {
       // Check for title
       if (Text.contains(line, #text "<title>")) {
         let title = line;
-        result := result # "Title: " # title # "\n";
+        result := result # title # "\n";
       };
       // Check for description
       if (Text.contains(line, #text "<description>")) {
         let description = line;
-        result := result # "Description: " # description # "\n";
+        result := result # description # "\n";
       };
       // Check for pubDate
       if (Text.contains(line, #text "<pubDate>")) {
         let pubDate = line;
-        result := result # "Publication Date: " # pubDate # "\n";
+        result := result # pubDate # "\n";
       }
     };
 
