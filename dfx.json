@@ -5,7 +5,7 @@
       "type": "motoko"
     },
     "frontend": {
-      "dependencies": ["agent_backend"],
+      "dependencies": ["backend"],
       "source": ["frontend"],
       "type": "assets"
     }
