@@ -58,7 +58,9 @@ actor {
   // Function to fetch and process the RSS feed
   public func fetch_rss_feed(url: Text) : async Text {
     let rss_feed = await custom_http_get(url);
-    return parse_rss_feed(rss_feed);
+    let parsed_feed = parse_rss_feed(rss_feed);
+    //let summary = await summarize_with_gpt(parsed_feed);
+    return parsed_feed;
   };
 
   // Function to parse the RSS feed and extract titles, descriptions, and pubDates
@@ -91,5 +93,44 @@ actor {
     return result;
   };
 
+  private func summarize_with_gpt(parsed_feed: Text) : async Text {
+    // Prepare the GPT API request
+    let gpt_request_headers = [
+      { name = "Content-Type"; value = "application/json" },
+      { name = "Authorization"; value = "Bearer YOUR_GPT_API_KEY" }
+    ];
+    
+    var body_string = "{
+      \"model\": \"gpt-4\",
+      \"prompt\": \"Summarize the following RSS feed data:\n\n" # parsed_feed # "\",
+      \"max_tokens\": 100,
+      \"temperature\": 0.7
+    }";
+
+    let gpt_request_body = Text.encodeUtf8(body_string);
+
+    let gpt_http_request : IC.http_request_args = {
+      url = "https://api.openai.com/v1/engines/gpt-4/completions";
+      max_response_bytes = null;
+      headers = gpt_request_headers;
+      body = ?gpt_request_body;
+      method = #post;
+      transform = null;
+    };
+
+    // Add cycles to pay for the HTTP request
+    Cycles.add<system>(230_949_972_000);
+
+    // Make the HTTP request to the GPT API and wait for the response
+    let gpt_http_response : IC.http_request_result = await IC.http_request(gpt_http_request);
+
+    // Decode the response
+    let gpt_response_text : Text = switch (Text.decodeUtf8(gpt_http_response.body)) {
+      case (null) { "No value returned" };
+      case (?y) { y };
+    };
+
+    return gpt_response_text;
+  };
 
 };
