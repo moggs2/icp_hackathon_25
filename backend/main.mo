@@ -3,6 +3,8 @@ import Cycles "mo:base/ExperimentalCycles";
 import Nat64 "mo:base/Nat64";
 import Text "mo:base/Text";
 import IC "ic:aaaaa-aa";
+import Array "mo:base/Array";
+import Option "mo:base/Option";
 
 // Actor
 actor {
@@ -52,4 +54,42 @@ actor {
     // 6. Return the decoded response
     decoded_text;
   };
+
+  // Function to fetch and process the RSS feed
+  public func fetch_rss_feed(url: Text) : async Text {
+    let rss_feed = await custom_http_get(url);
+    return parse_rss_feed(rss_feed);
+  };
+
+  // Function to parse the RSS feed and extract titles, descriptions, and pubDates
+  private func parse_rss_feed(rss_feed: Text) : Text {
+    // Initialize an empty string to hold the results
+    var result = "";
+
+    // Split the RSS feed into lines for easier processing
+    let lines = Text.split(rss_feed, #char('\n'));
+
+    // Iterate through the lines to find relevant information
+    for (line in lines) {
+      // Check for title
+      if (Text.contains(line, #text "<title>")) {
+        let title = line;
+        result := result # "Title: " # title # "\n";
+      };
+      // Check for description
+      if (Text.contains(line, #text "<description>")) {
+        let description = line;
+        result := result # "Description: " # description # "\n";
+      };
+      // Check for pubDate
+      if (Text.contains(line, #text "<pubDate>")) {
+        let pubDate = line;
+        result := result # "Publication Date: " # pubDate # "\n";
+      }
+    };
+
+    return result;
+  };
+
+
 };
