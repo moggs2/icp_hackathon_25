@@ -1,10 +1,8 @@
 import Blob "mo:base/Blob";
 import Cycles "mo:base/ExperimentalCycles";
-import Nat64 "mo:base/Nat64";
 import Text "mo:base/Text";
 import IC "ic:aaaaa-aa";
-import Array "mo:base/Array";
-import Option "mo:base/Option";
+
 
 // Actor
 actor {
@@ -67,29 +65,42 @@ actor {
   private func parse_rss_feed(rss_feed: Text) : Text {
     // Initialize an empty string to hold the results
     var result = "";
+    
+    let rss_feed_2 = Text.replace(rss_feed, #char '\n', "");
+    let rss_feed_3 = Text.replace(rss_feed_2, #text "<item>", "\n<item>");
+    let rss_feed_4 = Text.replace(rss_feed_3, #text "</item>", "</item>\n");
 
     // Split the RSS feed into lines for easier processing
-    let lines = Text.split(rss_feed, #char('\n'));
+    let lines = Text.split(rss_feed_4, #char('\n'));
 
     // Iterate through the lines to find relevant information
     for (line in lines) {
-      // Check for title
-      if (Text.contains(line, #text "<title>")) {
-        let title = line;
-        result := result # title # "\n";
-      };
-      // Check for description
-      if (Text.contains(line, #text "<description>")) {
-        let description = line;
-        result := result # description # "\n";
-      };
-      // Check for pubDate
-      if (Text.contains(line, #text "<pubDate>")) {
-        let pubDate = line;
-        result := result # pubDate # "\n";
-      }
-    };
+      let line_2 = Text.replace(line, #text "<title>", "\n<title>");
+      let line_3 = Text.replace(line_2, #text "</title>", "</title>\n");
+      let line_4 = Text.replace(line_3, #text "<description>", "\n<description>");
+      let line_5 = Text.replace(line_4, #text "</description>", "</description>\n");
+      let line_6 = Text.replace(line_5, #text "<pubDate>", "\n<pubDate>");
+      let line_7 = Text.replace(line_6, #text "</pubDate>", "</pubDate>\n");
+      let inner_lines = Text.split(line_7, #char('\n'));
 
+    for (inner_line in inner_lines) {
+          // Check for title
+          if (Text.contains(inner_line, #text "<title>")) {
+            let title = inner_line;
+            result := result # title # "\n";
+          };
+          // Check for description
+          if (Text.contains(inner_line, #text "<description>")) {
+            let description = inner_line;
+            result := result # description # "\n";
+          };
+          // Check for pubDate
+          if (Text.contains(inner_line, #text "<pubDate>")) {
+            let pubDate = inner_line;
+            result := result # pubDate # "\n";
+          }
+        };
+    };
     return result;
   };
 
