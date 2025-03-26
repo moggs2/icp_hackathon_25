@@ -1,22 +1,18 @@
 {
   "canisters": {
-    "backend": {
-      "main": "backend/main.mo",
-      "type": "motoko"
-    },
-    "frontend": {
-      "dependencies": ["backend"],
-      "source": ["frontend"],
+    "backend": {                                                                              "main": "backend/main.mo",
+      "type": "motoko",
+      "args": "--enhanced-orthogonal-persistence"
+    },                                                                                      "frontend": {                                                                             "dependencies": ["backend"],                                                            "frontend": {
+        "entrypoint": "frontend/index.html"
+      },
+      "source": ["frontend/dist"],
       "type": "assets"
     }
   },
+  "output_env_file": ".env",
   "defaults": {
     "build": {
-      "args": "",
-      "packtool": ""
-    }
-  },
-  "output_env_file": ".env",
-  "version": 1
+      "packtool": "mops sources"
+    }                                                                                     }
 }
-
