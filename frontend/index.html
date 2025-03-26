@@ -1,51 +1,46 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RSS Feed Summarizer</title>
-    <script src="https://cdn.jsdelivr.net/npm/@dfinity/agent@0.10.0/dist/agent.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@dfinity/principal@0.10.0/dist/principal.js"></script>
+<!doctype html>
+<html>
+  <head>
+    <title>RSS Feed AI Agent</title>
+    <style>
+      body {
+        padding: 10px 60px;
+        font-family: sans-serif;
+        font-size: 1.5rem;
+      }
+      #rssfeed {
+        margin: 10px auto;
+        padding: 10px 60px;
+        border: 1px solid #222;
+      }
+      #rssfeed:empty {
+        display: none;
+      }
+    </style>
     <script type="module">
-        import { HttpAgent, Actor } from '@dfinity/agent';
-        import { idlFactory } from '../../src/backend/backend.did.js'; // Adjust the path as necessary
-        import { Principal } from '@dfinity/principal';
-
-        const canisterId = "YOUR_BACKEND_CANISTER_ID"; // Replace with your Motoko actor's canister ID
-        const agent = new HttpAgent();
-        const actor = Actor.createActor(idlFactory, { agent, canisterId });
-
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('rssForm').addEventListener('submit', async (event) => {
-                event.preventDefault(); // Prevent form submission
-
-                const rssUrl = document.getElementById('rssUrl').value;
-                const afterDate = new Date(document.getElementById('afterDate').value);
-                const afterDateTimestamp = afterDate.getTime() / 1000; // Convert to seconds
-
-                try {
-                    const summary = await actor.fetchRssFeed(rssUrl, afterDateTimestamp);
-                    document.getElementById('summaryOutput').textContent = summary;
-                } catch (error) {
-                    console.error('Error fetching summary:', error);
-                    document.getElementById('summaryOutput').textContent = "Error fetching summary.";
-                }
-            });
-        });
+      // Import the backend actor
+      import { backend } from 'declarations/backend/';
+      // Add an event listener to the form
+      document.querySelector('form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        // Get the feed address from the input field
+        const address = document.getElementById('address').value.toString();
+        // Calling the method "fetch_rss_feed" on the backend actor with the feed
+        const ai_response = await backend.fetch_rss_feed(address);
+        // Display the answer returned by the backend actor
+        document.getElementById('rssfeed').innerText = ai_response;
+      });
     </script>
-</head>
-<body>
-    <h1>RSS Feed Summarizer</h1>
-    <form id="rssForm">
-        <label for="rssUrl">RSS Feed URL:</label>
-        <input type="text" id="rssUrl" required>
-        <br>
-        <label for="afterDate">After Date (YYYY-MM-DD):</label>
-        <input type="date" id="afterDate" required>
-        <br>
-        <button type="submit">Get Summary</button>
-    </form>
-    <h2>Summary:</h2>
-    <pre id="summaryOutput"></pre>
-</body>
+  </head>
+  <body>
+    <main>
+      <form>
+        <label for="address">Enter your RSS Feed Address: &nbsp;</label>
+        <input id="address" alt="Address" type="text" />
+        <button type="submit">Click Me!</button>
+      </form>
+      <section id="rssfeed"></section>
+    </main>
+  </body>
+</html>
 </html>
