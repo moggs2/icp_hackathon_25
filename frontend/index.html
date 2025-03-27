@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html>
   <head>
@@ -28,8 +29,11 @@
         // Calling the method "fetch_rss_feed" on the backend actor with the feed
         const ai_response = await backend.fetch_rss_feed(address);
         // Display the answer returned by the backend actor
-        document.getElementById('rssfeed').innerText = ai_response;
-      });
+	const ai_response_json = JSON.parse(ai_response);
+        const fulltext = ai_response_json.choices;
+	console.log(fulltext[0].message.content)
+        document.getElementById('rssfeed').innerText = fulltext[0].message.content;
+	      });
     </script>
   </head>
   <body>
@@ -42,4 +46,5 @@
       <section id="rssfeed"></section>
     </main>
   </body>
+</html>
 </html>
