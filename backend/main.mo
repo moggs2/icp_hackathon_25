@@ -57,8 +57,8 @@ actor {
   public func fetch_rss_feed(url: Text) : async Text {
     let rss_feed = await custom_http_get(url);
     let parsed_feed = parse_rss_feed(rss_feed);
-    //let summary = await summarize_with_gpt(parsed_feed);
-    return parsed_feed;
+    let summary = await summarize_with_gpt(parsed_feed);
+    return summary;
   };
 
   // Function to parse the RSS feed and extract titles, descriptions, and pubDates
@@ -106,27 +106,39 @@ actor {
 
   private func summarize_with_gpt(parsed_feed: Text) : async Text {
     // Prepare the GPT API request
-    let gpt_request_headers = [
-      { name = "Content-Type"; value = "application/json" },
-      { name = "Authorization"; value = "Bearer YOUR_GPT_API_KEY" }
+    let gpt_request_headers = 
+    [
+    { name = "Content-Type"; value = "application/json" }, 
+    { name = "Authorization"; value = "Bearer Your Key" }
     ];
     
+    var parsed_feed_2 = Text.replace(parsed_feed, #char '=', "  equals  ");
+    parsed_feed_2 := Text.replace(parsed_feed_2, #char '\n', "  new line  ");
+    parsed_feed_2 := Text.replace(parsed_feed_2, #char '/', " ");
+    parsed_feed_2 := Text.replace(parsed_feed_2, #char '\r', " ");
+    parsed_feed_2 := Text.replace(parsed_feed_2, #char '\t', " ");
+    parsed_feed_2 := Text.replace(parsed_feed_2, #char '\"', "  Quotes  ");
+    parsed_feed_2 := Text.replace(parsed_feed_2, #char '\\', "  Backslash  ");
+
     var body_string = "{
-      \"model\": \"gpt-4\",
-      \"prompt\": \"Summarize the following RSS feed data:\n\n" # parsed_feed # "\",
-      \"max_tokens\": 100,
-      \"temperature\": 0.7
+      \"model\": \"gpt-4o\",
+      \"messages\": [{ \"role\": \"user\", \"content\": \"Please summarize the following RSS feed: " # parsed_feed_2 # "\"       },
+       { \"role\": \"user\", \"content\": \"\"}
+       ]
     }";
 
     let gpt_request_body = Text.encodeUtf8(body_string);
 
     let gpt_http_request : IC.http_request_args = {
-      url = "https://api.openai.com/v1/engines/gpt-4/completions";
+      url = "https://api.openai.com/v1/chat/completions";
       max_response_bytes = null;
       headers = gpt_request_headers;
       body = ?gpt_request_body;
       method = #post;
-      transform = null;
+      transform = ?{
+        function = transform;
+        context = Blob.fromArray([]);
+       };
     };
 
     // Add cycles to pay for the HTTP request
