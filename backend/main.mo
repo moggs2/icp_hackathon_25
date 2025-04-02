@@ -54,18 +54,22 @@ actor {
   };
 
   // Function to fetch and process the RSS feed
-  public func fetch_rss_feed(url: Text) : async Text {
+  public func fetch_rss_feed(url: Text, todaystring: Text, maxitems: Int, filterwordsstring: Text) : async Text {
     let rss_feed = await custom_http_get(url);
-    let parsed_feed = parse_rss_feed(rss_feed);
+    let parsed_feed = parse_rss_feed(rss_feed, todaystring, maxitems, filterwordsstring);
     let summary = await summarize_with_gpt(parsed_feed);
     return summary;
   };
 
   // Function to parse the RSS feed and extract titles, descriptions, and pubDates
-  private func parse_rss_feed(rss_feed: Text) : Text {
+  private func parse_rss_feed(rss_feed: Text, todaystring: Text,  maxitems: Int, filterwordsstring: Text) : Text {
     // Initialize an empty string to hold the results
     var result = "";
-    
+    var consider_date = 0;
+    var consider_text = 0;
+    var result_complete = "";
+    var maxitems_number = maxitems;
+
     let rss_feed_2 = Text.replace(rss_feed, #char '\n', "");
     let rss_feed_3 = Text.replace(rss_feed_2, #text "<item>", "\n<item>");
     let rss_feed_4 = Text.replace(rss_feed_3, #text "</item>", "</item>\n");
@@ -74,7 +78,9 @@ actor {
     let lines = Text.split(rss_feed_4, #char('\n'));
 
     // Iterate through the lines to find relevant information
+    var i = 0;
     for (line in lines) {
+      
       let line_2 = Text.replace(line, #text "<title>", "\n<title>");
       let line_3 = Text.replace(line_2, #text "</title>", "</title>\n");
       let line_4 = Text.replace(line_3, #text "<description>", "\n<description>");
@@ -83,25 +89,48 @@ actor {
       let line_7 = Text.replace(line_6, #text "</pubDate>", "</pubDate>\n");
       let inner_lines = Text.split(line_7, #char('\n'));
 
-    for (inner_line in inner_lines) {
-          // Check for title
-          if (Text.contains(inner_line, #text "<title>")) {
-            let title = inner_line;
-            result := result # title # "\n";
+    if (i < maxitems_number) {
+        result := "";
+        consider_date := 0;
+        consider_text := 0;
+        var filterwords = filterwordsstring;
+        filterwords := Text.toUppercase(filterwords);
+        let filterwords_list = Text.split(filterwords, #char(' '));
+
+        for (inner_line in inner_lines) {
+              // Check for title
+              if (Text.contains(inner_line, #text "<title>")) {
+                let title = inner_line;
+                result := result # title # "\n";
+              };
+              // Check for description
+              if (Text.contains(inner_line, #text "<description>")) {
+                let description = inner_line;
+                result := result # description # "\n";
+              };
+              // Check for pubDate
+              if (Text.contains(inner_line, #text "<pubDate>")) {
+                let pubDate = inner_line;
+                result := result # pubDate # "\n";
+                    if (Text.contains(pubDate, #text todaystring)) {
+                        consider_date := 1;
+              };
+              };
           };
-          // Check for description
-          if (Text.contains(inner_line, #text "<description>")) {
-            let description = inner_line;
-            result := result # description # "\n";
+          for (filterword in filterwords_list) {
+              if (Text.contains(Text.toUppercase(result), #text filterword)) {
+                  consider_text := 1;
+            };
+            };
+          if (filterwordsstring == "") { consider_text := 1; }; 
+          if (consider_date==1 and consider_text==1) {
+              i += 1;
+              result_complete := result_complete # result;
           };
-          // Check for pubDate
-          if (Text.contains(inner_line, #text "<pubDate>")) {
-            let pubDate = inner_line;
-            result := result # pubDate # "\n";
-          }
-        };
+          };
+          
     };
-    return result;
+    return result_complete;
   };
 
   private func summarize_with_gpt(parsed_feed: Text) : async Text {
@@ -109,7 +138,7 @@ actor {
     let gpt_request_headers = 
     [
     { name = "Content-Type"; value = "application/json" }, 
-    { name = "Authorization"; value = "Bearer Your Key" }
+    { name = "Authorization"; value = "Bearer " }
     ];
     
     var parsed_feed_2 = Text.replace(parsed_feed, #char '=', "  equals  ");
