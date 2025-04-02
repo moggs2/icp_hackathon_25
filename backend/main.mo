@@ -54,10 +54,21 @@ actor {
   };
 
   // Function to fetch and process the RSS feed
-  public func fetch_rss_feed(url: Text, todaystring: Text, maxitems: Int, filterwordsstring: Text) : async Text {
-    let rss_feed = await custom_http_get(url);
-    let parsed_feed = parse_rss_feed(rss_feed, todaystring, maxitems, filterwordsstring);
-    let summary = await summarize_with_gpt(parsed_feed);
+  public func fetch_rss_feed(urls: Text, todaystring: Text, maxitems: Int, filterwordsstring: Text) : async Text {
+    let url_lines = Text.split(urls, #char(' '));
+    var rss_feed = "";
+    var parsed_feed = "";
+    var total_parsed_feed = "";
+    for (url in url_lines) {
+    
+        rss_feed := await custom_http_get(url);
+   
+        parsed_feed := parse_rss_feed(rss_feed, todaystring, maxitems, filterwordsstring);
+
+        total_parsed_feed := total_parsed_feed # parsed_feed;
+
+        };
+    let summary = await summarize_with_gpt(total_parsed_feed);
     return summary;
   };
 
@@ -141,13 +152,13 @@ actor {
     { name = "Authorization"; value = "Bearer " }
     ];
     
-    var parsed_feed_2 = Text.replace(parsed_feed, #char '=', "  equals  ");
-    parsed_feed_2 := Text.replace(parsed_feed_2, #char '\n', "  new line  ");
+    var parsed_feed_2 = Text.replace(parsed_feed, #char '=', "  --EQUALS--  ");
+    parsed_feed_2 := Text.replace(parsed_feed_2, #char '\n', "  --NEW LINE--  ");
     parsed_feed_2 := Text.replace(parsed_feed_2, #char '/', " ");
     parsed_feed_2 := Text.replace(parsed_feed_2, #char '\r', " ");
     parsed_feed_2 := Text.replace(parsed_feed_2, #char '\t', " ");
-    parsed_feed_2 := Text.replace(parsed_feed_2, #char '\"', "  Quotes  ");
-    parsed_feed_2 := Text.replace(parsed_feed_2, #char '\\', "  Backslash  ");
+    parsed_feed_2 := Text.replace(parsed_feed_2, #char '\"', "  --QUOTES--  ");
+    parsed_feed_2 := Text.replace(parsed_feed_2, #char '\\', " --BACKSLASH--  ");
 
     var body_string = "{
       \"model\": \"gpt-4o\",
