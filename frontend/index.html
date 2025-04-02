@@ -27,7 +27,7 @@
         // Get the feed address from the input field
         const address = document.getElementById('address').value.toString();
         // Calling the method "fetch_rss_feed" on the backend actor with the feed
-        const ai_response = await backend.fetch_rss_feed(address);
+        const ai_response = await backend.fetch_rss_feed(address, '', 2, '');
         // Display the answer returned by the backend actor
 	const ai_response_json = JSON.parse(ai_response);
         const fulltext = ai_response_json.choices;
