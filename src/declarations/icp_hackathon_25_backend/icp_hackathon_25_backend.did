@@ -1,0 +1,19 @@
+type http_request_result = 
+ record {
+   body: blob;
+   headers: vec http_header;
+   status: nat;
+ };
+type http_header = 
+ record {
+   name: text;
+   value: text;
+ };
+service : {
+  custom_http_get: (text) -> (text);
+  fetch_rss_feed: (text, text, int, text, text) -> (text);
+  transform: (record {
+                context: blob;
+                response: http_request_result;
+              }) -> (http_request_result) query;
+}
