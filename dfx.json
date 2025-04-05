@@ -1,23 +1,26 @@
 {
   "canisters": {
-    "backend": {
-      "main": "backend/main.mo",
-      "type": "motoko",
-      "args": "--enhanced-orthogonal-persistence"
+    "icp_hackathon_25_backend": {
+      "main": "src/icp_hackathon_25_backend/main.mo",
+      "type": "motoko"
     },
-    "frontend": {
-      "dependencies": ["backend"],
-      "frontend": {
-        "entrypoint": "frontend/index.html"
-      },
-      "source": ["frontend/dist"],
-      "type": "assets"
+    "icp_hackathon_25_frontend": {
+      "dependencies": [
+        "icp_hackathon_25_backend"
+      ],
+      "source": [
+        "src/icp_hackathon_25_frontend/dist"
+      ],
+      "type": "assets",
+      "workspace": "icp_hackathon_25_frontend"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
     }
   },
   "output_env_file": ".env",
-  "defaults": {
-    "build": {
-      "packtool": "mops sources"
-    }
-  }
+  "version": 1
 }
